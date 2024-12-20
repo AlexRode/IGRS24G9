@@ -5,7 +5,7 @@
 
 
 
-Produtct Backlog:
+Product Backlog:
 
 1.Epic : Utilizar o PBX2.0
      Como: Funcionário
@@ -32,17 +32,17 @@ Produtct Backlog:
    Quero: Interagir com colegas
    Para: Melhorar o ambiente de trabalho
 
-6. Epic: Disponibilizar o PBX2.0
+6.Epic: Disponibilizar o PBX2.0
    Como: Empresa
    Quero: Disponibilizar o PBX2.0
    Para: Utilização por parte dos funcionários
 
- 7.User Story: Monitorização do desempenho do serviço 
+ 7. User Story: Monitorização do desempenho do serviço 
   Como: Empresa
   Quero: Monitorar o desempenho do serviço 
   Para: Avaliar o desempenho do serviço 
 
-8. Epic: Oferecer o serviço PBX2.0
+8.Epic: Oferecer o serviço PBX2.0
    Como: Operador de Telecomunicações
    Quero: Oferecer o serviço PBX2.0
    Para: O seu serviço ser testado
