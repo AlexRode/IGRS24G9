@@ -37,7 +37,7 @@ Produtct Backlog:
    Quero: Disponibilizar o PBX2.0
    Para: Utilização por parte dos funcionários
 
-7.User Story: Monitorização do desempenho do serviço 
+ 7.User Story: Monitorização do desempenho do serviço 
   Como: Empresa
   Quero: Monitorar o desempenho do serviço 
   Para: Avaliar o desempenho do serviço 
