@@ -1,7 +1,9 @@
 # IGRS24G9
 
-
-
+Grupo 9 IGRS
+Alexandre Rodrigues nº105260
+Vasco Tavares nº104808
+Ricardo Gouveia nº105062
 
 
 
