@@ -61,3 +61,13 @@ Product Backlog:
     Quero: Garantir a segurança do serviço 
     Para: Proporcionar um serviço seguro e sem possibilidades de qualquer tipo de ataques ou erros
 
+Definition of Done - Diagrama de Estados
+
+Registar e deregistar users
+     
+![registar_users](https://github.com/user-attachments/assets/b6de6534-bf12-49d4-bb08-9b28c72da8bb)
+
+Reencaminhamento chamadas
+
+![reencaminhamento_chamadas (2)](https://github.com/user-attachments/assets/0440da57-2189-4dce-a99c-206ff51a717c)
+
