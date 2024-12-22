@@ -15,8 +15,11 @@ def mod_init():
     return kamailio()
 
 class kamailio:
+    
+    
     def __init__(self):
         KSR.info('===== kamailio.__init__\n')
+        self.userStatus = {}
 
     def child_init(self, rank):
         KSR.info('===== kamailio.child_init(%d)\n' % rank)
@@ -25,33 +28,66 @@ class kamailio:
     def ksr_request_route(self, msg):
         if  (msg.Method == "REGISTER"):
             KSR.info("REGISTER R-URI: " + KSR.pv.get("$ru") + "\n")
-            KSR.info("            To: " + KSR.pv.get("$tu") +
-                           " Contact:"+ KSR.hdr.get("Contact") +"\n")
+            KSR.info("            To: " + KSR.pv.get("$tu") + " Contact:"+ KSR.hdr.get("Contact") +"\n")
+            
+            if(KSR.pv.get("$fd") != "acme.pt" ):
+                KSR.info("Acesso REJEITADO \n")
+                KSR.sl.send_reply(403, "DOMINIO INVALIDO")
+                return -1
+            
+            self.userStatus[KSR.pv.get("$fu")] = "DISPONIVEL"
+            KSR.info("Estado " + KSR.pv.get("$fu") + "alterado para DISPONIVEL \n")
             KSR.registrar.save('location', 0)
             return 1
 
         if (msg.Method == "INVITE"):                      
             KSR.info("INVITE R-URI: " + KSR.pv.get("$ru") + "\n")
-            KSR.info("        From: " + KSR.pv.get("$fu") +
-                              " To:"+ KSR.pv.get("$tu") +"\n")
-            if (KSR.pv.get("$td") == "a.pt"):   # Check if To domain is a.pt
-                if (KSR.pv.get("$tu") == "sip:announce@a.pt"):  # Special To-URI
-                    KSR.tm.t_on_reply("ksr_onreply_route_INVITE")
-                    KSR.tm.t_on_failure("ksr_failure_route_INVITE")                 
-                    KSR.pv.sets("$ru", "sip:announce@127.0.0.1:5090")
-                    KSR.forward()       # Forwarding using statless mode
-#                    KSR.tm.t_relay()    # Relaying using transaction mode
-                    return 1  
-                if (KSR.registrar.lookup("location") == 1):  # Check if registered
-                    KSR.info("  lookup changed R-URI: " + KSR.pv.get("$ru") +"\n")
-#                  KSR.rr.record_route()  # Add Record-Route header
-                    KSR.tm.t_relay()
-                else:
-                    KSR.sl.send_reply(404, "Not found")
-            else:
-#               KSR.rr.record_route()
+            KSR.info("        From: " + KSR.pv.get("$fu") + "\n")
+            KSR.info("          To: " + KSR.pv.get("$tu") + "\n")
+            
+            
+            #1 - Rejeitado por vir de um dominio fora de acme.pt
+            if(KSR.pv.get("$fd") != "acme.pt" ):
+                KSR.info("Acesso REJEITADO \n")
+                KSR.sl.send_reply(403, "DOMINIO INVALIDO")
+                return -1
+            
+            
+            #2 - Encaminhamento restrito para outros funcionários da ACME
+            if (KSR.pv.get("$td") != "acme.pt" ):
+                KSR.info("Acesso REJEITADO \n")
+                KSR.sl.send_reply(403, "DOMINIO INVALIDO")
+                return -1
+            
+            #3 - Reencaminhamento para a conferência ACME
+            if KSR.pv.get("$ru") == "sip:conferencia@acme.pt" :
+                KSR.info("reencaminhado para a conferência")
+                self.userStatus[KSR.pv.get("$fu")] = "InConference"
+                KSR.info("Estado " + KSR.pv.get("$fu") + " alterado para InConference \n")
+                KSR.pv.sets("$ru","sip:conferencia@127.0.0.1:5090")
                 KSR.tm.t_relay()
-            return 1
+                return 1
+            
+            #4 - Funcionário destino não registado
+            if KSR.registrar.lookup("location") != 1:
+                KSR.info("Não esta registado ou disponivel!\n")
+                KSR.sl.send_reply(404, "Utilizador de destino não está registado ou disponível!")
+                return -1
+            
+            
+            #5 - Funcionário destino ocupado
+            if self.userStatus[(KSR.pv.get("$tu"))] == "OCUPADO" : 
+                KSR.info("ocupado - Redirecionado para servidor de anúncios")
+                self.userStatus[KSR.pv.get("$fu")] = "OCUPADO" 
+                KSR.info("Estado " + KSR.pv.get("$fu") + " alterado para OCUPADO \n")
+                KSR.pv.sets("$ru", "sip:busyann@127.0.0.1:5070")
+                KSR.tm.t_relay()
+                return 1
+            
+            #6 - Funcionário em conferência (POR FAZER)
+            
+            
+            
 
         if (msg.Method == "ACK"):
             KSR.info("ACK R-URI: " + KSR.pv.get("$ru") + "\n")
@@ -66,6 +102,9 @@ class kamailio:
             return 1
 
         if (msg.Method == "BYE"):
+            self.userStatus[KSR.pv.get("$tu")] = "DISPONIVEL"
+            self.userStatus[KSR.pv.get("$fu")] = "DISPONIVEL"
+            
             KSR.info("BYE R-URI: " + KSR.pv.get("$ru") + "\n")
             KSR.registrar.lookup("location")
             KSR.rr.loose_route()
@@ -111,7 +150,7 @@ class kamailio:
     def ksr_onreply_route_INVITE(self, msg):
         KSR.info("===== INVITE onreply route - from kamailio python script\n")
         return 0
- 
+
     def ksr_failure_route_INVITE(self, msg):
         KSR.info("===== INVITE failure route - from kamailio python script\n")
         return 1
